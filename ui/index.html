@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Prompt Creator</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <nav class="rail" aria-label="Main">
+    <div class="rail-logo" data-logo title="Super Prompt Creator"></div>
+    <button class="rail-btn active" data-nav="create" title="Create (Ctrl+1)"><span data-icon="spark"></span><span>Create</span></button>
+    <button class="rail-btn" data-nav="library" title="Library (Ctrl+2)"><span data-icon="library"></span><span>Library</span></button>
+    <div class="rail-sep"></div>
+    <button class="rail-btn" data-site="gemini" title="Open Gemini (your Google account) inside the app"><span data-icon="chat"></span><span>Gemini</span></button>
+    <button class="rail-btn" data-site="chatgpt" title="Open ChatGPT (your account) inside the app"><span data-icon="bubble"></span><span>ChatGPT</span></button>
+    <button class="rail-btn" data-site="claude" title="Open Claude (your account) inside the app"><span data-icon="feather"></span><span>Claude</span></button>
+    <div class="rail-fill"></div>
+    <button class="rail-btn" data-nav="settings" title="Settings (Ctrl+,)"><span data-icon="settings"></span><span>Settings</span></button>
+  </nav>
+
+  <main>
+    <!-- ============================== CREATE -->
+    <section class="view active" id="view-create">
+      <div class="composer">
+        <header class="composer-head">
+          <div>
+            <h1><span class="grad">Super</span> Prompt</h1>
+            <p class="sub">Turn a rough idea into a prompt that just works.</p>
+          </div>
+          <button class="account-chip" id="account-chip" title="Your Gemini account"></button>
+        </header>
+
+        <div class="seg seg-mode" role="tablist">
+          <button class="active" data-mode="create" role="tab"><span data-icon="spark"></span>From an idea</button>
+          <button data-mode="improve" role="tab"><span data-icon="wand"></span>Improve a prompt</button>
+        </div>
+
+        <div class="idea-card" id="idea-card">
+          <textarea id="idea" spellcheck="true" rows="6"></textarea>
+          <div class="idea-foot">
+            <span class="muted small" id="idea-count">0 characters</span>
+            <span class="fill"></span>
+            <button class="ghost tiny" id="idea-clear" title="Clear"><span data-icon="x"></span></button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Prompt for</label>
+          <div class="chips" id="target-chips"></div>
+        </div>
+
+        <div class="row2">
+          <div class="field" id="field-kind">
+            <label class="label" for="kind-select">Type</label>
+            <select id="kind-select"></select>
+          </div>
+          <div class="field" id="field-media" hidden>
+            <label class="label" for="media-select" id="media-label">Image model</label>
+            <select id="media-select"></select>
+          </div>
+          <div class="field">
+            <label class="label">Detail</label>
+            <div class="seg seg-small" id="detail-seg"></div>
+          </div>
+        </div>
+
+        <div class="toggles">
+          <label class="switch" id="opt-ask-wrap"><input type="checkbox" id="opt-ask"><span class="track"></span><span>Ask me quick questions first</span></label>
+          <label class="switch"><input type="checkbox" id="opt-blanks"><span class="track"></span><span>Use <code>{{blanks}}</code> for info only I know</span></label>
+          <label class="switch" id="opt-examples-wrap"><input type="checkbox" id="opt-examples"><span class="track"></span><span>Include examples</span></label>
+          <label class="switch" id="opt-aiasks-wrap"><input type="checkbox" id="opt-aiasks"><span class="track"></span><span>Make the AI ask me questions before it starts</span></label>
+        </div>
+
+        <button class="primary big" id="go"><span data-icon="spark"></span><span id="go-label">Create super prompt</span><kbd>Ctrl ↵</kbd></button>
+        <p class="muted small center" id="go-hint"></p>
+      </div>
+
+      <div class="stage" id="stage">
+        <!-- filled by app.js: empty state / questions / result -->
+      </div>
+    </section>
+
+    <!-- ============================== LIBRARY -->
+    <section class="view" id="view-library">
+      <div class="page">
+        <header class="page-head">
+          <div>
+            <h2>Library</h2>
+            <p class="sub">Every prompt you make is saved here automatically.</p>
+          </div>
+          <div class="search"><span data-icon="search"></span><input id="lib-search" type="search" placeholder="Search prompts…"></div>
+        </header>
+        <div class="chips" id="lib-filters"></div>
+        <div class="lib-grid" id="lib-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============================== SETTINGS -->
+    <section class="view" id="view-settings">
+      <div class="page narrow" id="settings-page"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ============================== LINK ACCOUNT -->
+<div class="overlay" id="connect" hidden>
+  <div class="connect-card" role="dialog" aria-modal="true" aria-labelledby="connect-title">
+    <button class="ghost icon-only close" id="connect-close" title="Close"><span data-icon="x"></span></button>
+    <div class="connect-hero">
+      <div class="hero-logo" data-logo></div>
+      <h2 id="connect-title">Link your Google Gemini account</h2>
+      <p class="sub" id="connect-sub">Super Prompt Creator uses Gemini through your own Google account. It takes about a minute, once.</p>
+    </div>
+    <ol class="steps">
+      <li>
+        <span class="num">1</span>
+        <div>
+          <b>Sign in with Google and open your API keys</b>
+          <p class="muted">Opens Google AI Studio. Creating a key is free.</p>
+          <div class="btn-row">
+            <button class="primary" id="connect-open"><span data-icon="user"></span>Open Google AI Studio</button>
+            <button class="ghost" id="connect-browser"><span data-icon="external"></span>Use my browser instead</button>
+          </div>
+        </div>
+      </li>
+      <li>
+        <span class="num">2</span>
+        <div>
+          <b>Click “Create API key”, then “Copy”</b>
+          <p class="muted">If you already have a key there, just copy it.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">3</span>
+        <div>
+          <b>That's it — it links automatically</b>
+          <div class="watch" id="connect-watch"><span class="spinner"></span><span id="connect-watch-text">Waiting for you to copy your key…</span></div>
+        </div>
+      </li>
+    </ol>
+    <div class="or"><span>or paste it here</span></div>
+    <form class="paste-row" id="connect-form" autocomplete="off">
+      <div class="key-input"><span data-icon="key"></span><input id="connect-key" type="password" placeholder="AIza…" spellcheck="false" autocomplete="off"></div>
+      <button class="primary" id="connect-submit" type="submit">Link</button>
+    </form>
+    <p class="connect-error" id="connect-error" hidden></p>
+    <p class="fine"><span data-icon="lock"></span>Your key is kept in Windows Credential Manager on this PC and is only ever sent to Google.</p>
+    <div class="connect-done" id="connect-done" hidden>
+      <div class="done-badge"><span data-icon="check"></span></div>
+      <h2>Linked!</h2>
+      <p class="sub" id="connect-done-text">Your Google Gemini account is ready.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== MODAL -->
+<div class="overlay" id="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <h3 id="modal-title"></h3>
+    <div id="modal-body"></div>
+    <div class="btn-row end" id="modal-actions"></div>
+  </div>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
